@@ -1,0 +1,39 @@
+<additional>
+    <vTypeDistribution id="hcmc_fleet">
+        
+        <vType id="motorbike" 
+               vClass="motorcycle" 
+               length="1.8" 
+               width="0.8" 
+               maxSpeed="18.0" 
+               accel="2.5" 
+               decel="4.0" 
+               sigma="0.3"
+               minGap="1.0"
+               lcSpeedGain="1.0"
+               lcStrategic="1.0"
+               lcCooperative="0.5"
+               probability="0.80" /> 
+        <vType id="car" 
+               vClass="passenger" 
+               length="4.5" 
+               width="1.8" 
+               maxSpeed="15.0" 
+               accel="1.5" 
+               decel="4.5" 
+               sigma="0.5"
+               minGap="2.5"
+               probability="0.15" /> 
+        <vType id="bus" 
+               vClass="bus" 
+               length="12.0" 
+               width="2.6" 
+               maxSpeed="13.0" 
+               accel="1.0" 
+               decel="3.5" 
+               minGap="3.0"
+               lcPushy="0.5" 
+               lcImpatience="0.5"
+               probability="0.05" />
+    </vTypeDistribution>
+</additional>
