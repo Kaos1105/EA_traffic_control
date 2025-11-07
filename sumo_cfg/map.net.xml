@@ -219,7 +219,7 @@
         <lane id="1422795954_1" index="1" disallow="tram rail_urban rail rail_electric rail_fast ship container cable_car subway aircraft wheelchair scooter drone" speed="27.78" length="116.02" shape="421.63,53.90 330.67,125.95"/>
     </edge>
 
-    <tlLogic id="cluster_13075564400_13075589603_411926344" type="static" programID="0" offset="0">
+    <tlLogic id="cluster_13075564400_13075589603_411926344" type="static" programID="custom_logic" offset="0">
         <phase duration="39" state="rrrrrGGggGGG"/>
         <phase duration="6"  state="rrrrryyyyyyy"/>
         <phase duration="39" state="GGGGGrrrrrrr"/>

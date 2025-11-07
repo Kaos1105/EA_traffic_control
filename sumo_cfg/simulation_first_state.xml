@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2025-11-07 17:08:44 by Eclipse SUMO libsumo Version 1.24.0
+<libsumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/libsumoConfiguration.xsd">
+
+    <input>
+        <net-file value="./sumo_cfg/map.net.xml"/>
+        <route-files value="./sumo_cfg/routes.rou.xml"/>
+        <additional-files value="./sumo_cfg/hcmc_vtypes.xml"/>
+    </input>
+
+    <output>
+        <save-state.rng value="true"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+        <end value="16200"/>
+    </time>
+
+    <random_number>
+        <seed value="8"/>
+    </random_number>
+
+</libsumoConfiguration>
+-->
+
+<snapshot type="micro" version="1.24.0" time="1.00" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/state_file.xsd">
+    <rngState default="0" routeHandler="100888" insertionControl="0" device="0" device.btreceiver="0" driverState="0" device.toc="0">
+        <rngLane index="0" state="0"/>
+        <rngLane index="1" state="0"/>
+        <rngLane index="2" state="0"/>
+        <rngLane index="3" state="0"/>
+        <rngLane index="4" state="0"/>
+        <rngLane index="5" state="0"/>
+        <rngLane index="6" state="0"/>
+        <rngLane index="7" state="0"/>
+        <rngLane index="8" state="0"/>
+        <rngLane index="9" state="0"/>
+        <rngLane index="10" state="0"/>
+        <rngLane index="11" state="0"/>
+        <rngLane index="12" state="0"/>
+        <rngLane index="13" state="0"/>
+        <rngLane index="14" state="0"/>
+        <rngLane index="15" state="0"/>
+        <rngLane index="16" state="0"/>
+        <rngLane index="17" state="0"/>
+        <rngLane index="18" state="0"/>
+        <rngLane index="19" state="0"/>
+        <rngLane index="20" state="0"/>
+        <rngLane index="21" state="0"/>
+        <rngLane index="22" state="0"/>
+        <rngLane index="23" state="0"/>
+        <rngLane index="24" state="0"/>
+        <rngLane index="25" state="0"/>
+        <rngLane index="26" state="0"/>
+        <rngLane index="27" state="0"/>
+        <rngLane index="28" state="0"/>
+        <rngLane index="29" state="0"/>
+        <rngLane index="30" state="0"/>
+        <rngLane index="31" state="0"/>
+        <rngLane index="32" state="0"/>
+        <rngLane index="33" state="0"/>
+        <rngLane index="34" state="0"/>
+        <rngLane index="35" state="0"/>
+        <rngLane index="36" state="0"/>
+        <rngLane index="37" state="0"/>
+        <rngLane index="38" state="0"/>
+        <rngLane index="39" state="0"/>
+        <rngLane index="40" state="0"/>
+        <rngLane index="41" state="0"/>
+        <rngLane index="42" state="0"/>
+        <rngLane index="43" state="0"/>
+        <rngLane index="44" state="0"/>
+        <rngLane index="45" state="0"/>
+        <rngLane index="46" state="0"/>
+        <rngLane index="47" state="0"/>
+        <rngLane index="48" state="0"/>
+        <rngLane index="49" state="0"/>
+        <rngLane index="50" state="0"/>
+        <rngLane index="51" state="0"/>
+        <rngLane index="52" state="0"/>
+        <rngLane index="53" state="0"/>
+        <rngLane index="54" state="0"/>
+        <rngLane index="55" state="0"/>
+        <rngLane index="56" state="0"/>
+        <rngLane index="57" state="0"/>
+        <rngLane index="58" state="0"/>
+        <rngLane index="59" state="0"/>
+        <rngLane index="60" state="0"/>
+        <rngLane index="61" state="0"/>
+        <rngLane index="62" state="0"/>
+        <rngLane index="63" state="0"/>
+    </rngState>
+    <edgeControl lanes=""/>
+    <route id="!1" state="0" edges="1265822568#1 1265822568#2 1265822568#3 1200728225#2 1200728225#3 1200728225#4 1163556238#1"/>
+    <route id="!2" state="0" edges="1200728225#2 1200728225#3 1200728225#4 1221994726#0 1221994726#1"/>
+    <delay number="1" begin="2" end="0" depart="0.00" time="0.00"/>
+    <vType id="bus" length="12.00" minGap="3.00" maxSpeed="13.00" probability="0.05" vClass="bus" width="2.60" lcPushy="0.5" lcImpatience="0.5" accel="1.0" decel="3.5"/>
+    <vType id="car" length="4.50" minGap="2.50" maxSpeed="15.00" probability="0.15" vClass="passenger" width="1.80" accel="1.5" decel="4.5" sigma="0.5"/>
+    <vType id="motorbike" length="1.80" minGap="1.00" maxSpeed="18.00" probability="0.80" vClass="motorcycle" width="0.80" lcStrategic="1.0" lcCooperative="0.5" lcSpeedGain="1.0" accel="2.5" decel="4.0" sigma="0.3"/>
+    <vTypeDistribution id="hcmc_fleet" vTypes="motorbike car bus" probabilities="0.80 0.15 0.05"/>
+    <vehicle id="1" type="car" depart="0.00" route="!1" distance="0 0" speedFactor="1.0951" state="2 0 0 4.60 0 0.00 1000 0 0" pos="4.60 0.10 0.00" speed="0.00 0.00" angle="224.71" posLat="0.00" waitingTime="100000 0"/>
+    <vehicle id="2" type="motorbike" depart="2.00" route="!2" distance="0 0" speedFactor="1.0131" state="2 9223372036854774807 0 -1.00 0 0.00 0 0 0" pos="0.00 0.00 0.00" speed="0.00 0.00" angle="90.00" posLat="0.00" waitingTime="100000 0"/>
+    <lane id="1265822568#1_0">
+        <vehicles value="1"/>
+    </lane>
+    <tlLogic id="cluster_13075564400_13075589603_411926344" programID="custom_logic" phase="0" duration="1000"/>
+</snapshot>
