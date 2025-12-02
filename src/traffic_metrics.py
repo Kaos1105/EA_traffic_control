@@ -38,9 +38,10 @@ def cycle_metrics(ns_lanes, ew_lanes, steps):
             
     # Fairness (bounded 0–1)
     O2_norm = abs(ns_delay_proxy - ew_delay_proxy) / (ns_delay_proxy + ew_delay_proxy + 1e-5)
-    # Total average queue length
-    delay_rate = (ns_delay_proxy + ew_delay_proxy)/(steps-config.LOST_TIME)
-    O1_norm = (delay_rate - config.MIN_DELAY_RATE_PER_CYCLE) / (config.MAX_DELAY_RATE_PER_CYCLE - config.MIN_DELAY_RATE_PER_CYCLE)
+    # Clearing the worst queue
+    worst_delay = max(ns_delay_proxy, ew_delay_proxy)
+    O1_norm = (worst_delay - config.MIN_WORST_DELAY) / (config.MAX_WORST_DELAY - config.MIN_WORST_DELAY)
+    O1_norm = min(max(O1_norm, 0.0), 1.0)
 
     return O1_norm, O2_norm
 
