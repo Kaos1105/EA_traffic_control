@@ -6,6 +6,10 @@ SUMO_STATE = "./sumo_cfg/simulation_state.xml"  # your initial state file
 SUMO_FIRST_STATE = "./sumo_cfg/simulation_first_state.xml"  # your initial state file
 LOG_DIR= "logs"
 
+# Config for ML teacher
+DATASET_PATH = "datasets/de_teacher_data.csv"
+EMA_ALPHA = 0.3 
+
 # Global timing constants
 REDUCE_AVG_WAIT_TIME_W, FAIRNESS_W = 0.7, 0.3 # prioritize reduce wait time
 CYCLE_LENGTH_DEFAULT = 90   # s
@@ -18,8 +22,8 @@ END_TIME = 16200
 CHECK_POINT_INTERVAL = 1800
 
 #Delay rate (queue area per usable second)
-MIN_DELAY_RATE_PER_CYCLE = 0
-MAX_DELAY_RATE_PER_CYCLE = 40
+MIN_WORST_AVG_DELAY = 0
+MAX_WORST_AVG_DELAY = 30
 
 sumo_cmd = [
         "-c", SUMO_CFG,

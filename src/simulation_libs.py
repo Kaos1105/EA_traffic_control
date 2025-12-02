@@ -64,22 +64,21 @@ def find_avg_halt_range(ns_lanes, ew_lanes):
                 ew_delay_proxy += sum(traci.lane.getLastStepHaltingNumber(l) for l in ew_lanes)
                 
             # Total average queue length
-            total_avg_halt = (ns_delay_proxy + ew_delay_proxy)
+            max_halt_per_lane = max(ns_delay_proxy, ew_delay_proxy)
              # Fairness (bounded 0–1)
             fainess = abs(ns_delay_proxy - ew_delay_proxy) / (ns_delay_proxy + ew_delay_proxy + 1e-5)
-        if(total_avg_halt > max_avg_halt):
-            max_avg_halt = total_avg_halt
-        if(total_avg_halt < min_avg_halt):
-            min_avg_halt = total_avg_halt
+        if(max_halt_per_lane > max_avg_halt):
+            max_avg_halt = max_halt_per_lane
+        if(max_halt_per_lane < min_avg_halt):
+            min_avg_halt = max_halt_per_lane
         if(fainess > max_fairness):
             max_fairness = fainess
         if(fainess < min_fairness):
             min_fairness = fainess
 
     print(f"❌ Stopping at END_TIME.")
-    usable_time = config.CYCLE_LENGTH_DEFAULT - config.LOST_TIME
-    
-    return max_avg_halt/usable_time,min_avg_halt/usable_time,max_fairness,min_fairness    
+    usable_time = config.CYCLE_LENGTH_DEFAULT - config.LOST_TIME    
+    return max_avg_halt/usable_time ,min_avg_halt/usable_time ,max_fairness,min_fairness    
 
 def apply_plan(tl_id, g_main, g_cross, amber=3, all_red=3):
     """

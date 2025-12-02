@@ -17,6 +17,18 @@ class DEResult:
     gen_history: list
 
 def cycle_metrics(ns_lanes, ew_lanes, steps):
+    """
+    Evaluate one cycle under the current signal program.
+
+    Uses only halting vehicle counts + signal state, which are
+    realistically capturable with cameras/loops + signal phase info.
+
+    Returns:
+        O1_norm: clearing the worst queue (0..1, lower better)
+        O2_norm: fairness (0..1, lower better)
+        ns_delay_proxy: sum of NS queue while NS is red
+        ew_delay_proxy: sum of EW queue while EW is red
+    """
     ns_delay_proxy = ew_delay_proxy = 0
 
     for _ in range(steps):
@@ -40,10 +52,13 @@ def cycle_metrics(ns_lanes, ew_lanes, steps):
     O2_norm = abs(ns_delay_proxy - ew_delay_proxy) / (ns_delay_proxy + ew_delay_proxy + 1e-5)
     # Clearing the worst queue
     worst_delay = max(ns_delay_proxy, ew_delay_proxy)
-    O1_norm = (worst_delay - config.MIN_WORST_DELAY) / (config.MAX_WORST_DELAY - config.MIN_WORST_DELAY)
+    # penalty small steps
+    usable_time = steps - config.LOST_TIME    
+    worst_avg_delay = worst_delay / usable_time
+    O1_norm = (worst_avg_delay - config.MIN_WORST_AVG_DELAY) / (config.MAX_WORST_AVG_DELAY - config.MIN_WORST_AVG_DELAY)
     O1_norm = min(max(O1_norm, 0.0), 1.0)
 
-    return O1_norm, O2_norm
+    return O1_norm, O2_norm, ns_delay_proxy, ew_delay_proxy
 
 # Evaluation function
 def evaluate(s, C, isReset=True):
