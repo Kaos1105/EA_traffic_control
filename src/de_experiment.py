@@ -218,7 +218,7 @@ def seed_de_teacher_simulation(total_cycles=300):
         apply_plan(road_config.TL_ID, g_main, g_cross)
 
         # Evaluate performance under fixed plan
-        O1, O2, ns_delay_curr, ew_delay_curr = cycle_metrics(road_config.NS_LANES, road_config.EW_LANES, int(C))
+        O1, O2, ns_delay_curr, ew_delay_curr = cycle_metrics(road_config.NS_LANES, road_config.EW_LANES, int(C), is_return_delay_proxies=True)
         score_best = score_function(O1, O2)
             
         #  Log and write results

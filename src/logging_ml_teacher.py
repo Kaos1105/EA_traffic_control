@@ -1,6 +1,6 @@
 import csv
 import os
-import config
+from src import config
 
 def init_dataset_file(path=config.DATASET_PATH):
     if not os.path.exists(path):

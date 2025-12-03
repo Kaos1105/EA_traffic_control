@@ -16,7 +16,7 @@ class DEResult:
     elapsed: float
     gen_history: list
 
-def cycle_metrics(ns_lanes, ew_lanes, steps):
+def cycle_metrics(ns_lanes, ew_lanes, steps, is_return_delay_proxies=False):
     """
     Evaluate one cycle under the current signal program.
 
@@ -58,13 +58,16 @@ def cycle_metrics(ns_lanes, ew_lanes, steps):
     O1_norm = (worst_avg_delay - config.MIN_WORST_AVG_DELAY) / (config.MAX_WORST_AVG_DELAY - config.MIN_WORST_AVG_DELAY)
     O1_norm = min(max(O1_norm, 0.0), 1.0)
 
-    return O1_norm, O2_norm, ns_delay_proxy, ew_delay_proxy
+    if is_return_delay_proxies:
+        return O1_norm, O2_norm, ns_delay_proxy, ew_delay_proxy
+    else:
+        return O1_norm, O2_norm             
 
 # Evaluation function
-def evaluate(s, C, isReset=True):
+def evaluate(s, C, is_reset =True):
     try:    
         # Restore identical starting conditions before evaluating this candidate
-        if isReset:
+        if is_reset:
             reload_sumo_with_state(config.SUMO_STATE, config.sumo_cmd)
         g_main, g_cross = get_green_split(s, C)
         apply_plan(road_config.TL_ID, g_main, g_cross)
@@ -95,7 +98,7 @@ def robust_evaluate(x, n_cycles=2, λ=0.2):
     O1s = []
     O2s = []
     for _ in range(n_cycles):
-        O1, O2 = evaluate(s, C, isReset=False)  # continue simulation
+        O1, O2 = evaluate(s, C, False)  # continue simulation
         O1s.append(O1)
         O2s.append(O2)
         scores.append(score_function(O1, O2))

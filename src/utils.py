@@ -77,7 +77,7 @@ def visualize_pow_results(log_dir, suffix="", prefix="traffic_DE"):
 
     # --- 2. Objective trends
     plt.figure(figsize=(7,4))
-    plt.plot(df["cycle"], df["O1"], label="Avg delay (O1)")
+    plt.plot(df["cycle"], df["O1"], label="Max Avg delay (O1)")
     plt.plot(df["cycle"], df["O2"], label="Fairness (O2)")
     plt.xlabel("Cycle #")
     plt.ylabel("Objective value")
