@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2025-12-05 08:13:34 by Eclipse SUMO libsumo Version 1.24.0
+<!-- generated on 2025-12-07 21:19:05 by Eclipse SUMO libsumo Version 1.24.0
 <libsumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/libsumoConfiguration.xsd">
 
     <input>
@@ -30,7 +30,7 @@
     <vType id="motorbike" length="1.80" minGap="1.00" maxSpeed="18.00" probability="0.80" vClass="motorcycle" width="0.80" lcStrategic="1.0" lcCooperative="0.5" lcSpeedGain="1.0" accel="2.5" decel="4.0" sigma="0.3"/>
     <vTypeDistribution id="hcmc_fleet" vTypes="motorbike car bus" probabilities="0.80 0.15 0.05"/>
     <vehicle id="1" type="car" depart="0.00" route="!1" distance="0 0" speedFactor="1.0951" state="2 0 0 4.60 0 0.00 1000 0 0" pos="4.60 0.10 0.00" speed="0.00 0.00" angle="306.89" posLat="0.00" waitingTime="100000 0"/>
-    <vehicle id="2" type="motorbike" depart="2.00" route="!2" distance="0 0" speedFactor="1.0131" state="2 9223372036854774807 0 -1.00 0 0.00 0 0 0" pos="0.00 0.00 0.00" speed="0.00 0.00" angle="90.00" posLat="0.00" waitingTime="100000 0"/>
+    <vehicle id="2" type="motorbike" depart="1.80" route="!2" distance="0 0" speedFactor="1.0131" state="2 9223372036854774807 0 -1.00 0 0.00 0 0 0" pos="0.00 0.00 0.00" speed="0.00 0.00" angle="90.00" posLat="0.00" waitingTime="100000 0"/>
     <lane id="1200728225#2_0">
         <vehicles value="1"/>
     </lane>
