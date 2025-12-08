@@ -25,9 +25,11 @@ BATCH_SIZE = 64
 LR = 1e-3
 EPOCHS = 200
 PATIENCE = 20
-HIDDEN = [64, 64]
+HIDDEN = [64, 32]
 DROPOUT = 0.1
 SEED = config.SEED
+WEIGHT_S_STAR = 0.5   # weight for s_star (split ratio)
+WEIGHT_C_STAR = 0.5   # weight for C_star (cycle length)
 
 
 # ========= Utils =========
@@ -37,7 +39,15 @@ def set_seed(seed: int):
     np.random.seed(seed)
     torch.manual_seed(seed)
 
+def weighted_mse_loss(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    """
+    pred, target: (batch_size, 2) in normalized space [s_star_norm, C_star_norm]
+    """
+    mse_s = torch.mean((pred[:, 0] - target[:, 0]) ** 2)
+    mse_c = torch.mean((pred[:, 1] - target[:, 1]) ** 2)
+    return WEIGHT_S_STAR * mse_s + WEIGHT_C_STAR * mse_c
 
+# ========= Model =========
 class MLP(nn.Module):
     def __init__(self, in_dim: int, out_dim: int, hidden, dropout: float):
         super().__init__()
@@ -122,7 +132,7 @@ def train_model(
     epochs: int,
     patience: int,
 ):
-    criterion = nn.MSELoss()
+    # criterion = nn.MSELoss() standard loss
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     best_val = float("inf")
@@ -136,7 +146,8 @@ def train_model(
             xb, yb = xb.to(device), yb.to(device)
             optimizer.zero_grad()
             pred = model(xb)
-            loss = criterion(pred, yb)
+            # loss = criterion(pred, yb) # standard loss
+            loss = weighted_mse_loss(pred, yb)   # weighted loss
             loss.backward()
             optimizer.step()
 
@@ -147,7 +158,8 @@ def train_model(
             for xb, yb in val_loader:
                 xb, yb = xb.to(device), yb.to(device)
                 pred = model(xb)
-                val_loss += criterion(pred, yb).item()
+                # val_loss += criterion(pred, yb).item() # standard loss
+                val_loss += weighted_mse_loss(pred, yb).item()  # weighted loss
 
         val_loss /= len(val_loader)
         print(f"Epoch {epoch:03d}  Val Loss = {val_loss:.6f}")
@@ -196,17 +208,37 @@ def evaluate_model(model, test_loader, y_scaler, device):
     rmse_s = root_mean_squared_error(trues_den[:, 0], preds_den[:, 0])
     rmse_C = root_mean_squared_error(trues_den[:, 1], preds_den[:, 1])
 
+    # --- compute human readable values ---
+    # For s_star (% of full split range)
+    mae_s_pct_points = mae_s * 100 
+    # For C_star (cycle length interpretation)
+    mean_C = np.mean(trues_den[:, 1])
+    mae_C_pct_mean = (mae_C / mean_C) * 100 if mean_C != 0 else np.nan
+
     metrics = {
+        # raw
         "mae_s_star": mae_s,
         "mae_C_star": mae_C,
         "rmse_s_star": rmse_s,
         "rmse_C_star": rmse_C,
+        # human readable
+        "s_star_mae_percentage_points": mae_s_pct_points,
+        "C_star_mae_percent_of_mean": mae_C_pct_mean,
+
         "num_test": int(trues_den.shape[0]),
     }
 
-    print("\n=== Test Metrics ===")
-    for k, v in metrics.items():
-        print(f"{k}: {v:.6f}" if isinstance(v, float) else f"{k}: {v}")
+      # --- pretty print ---
+    print("\n=== Test Metrics (Raw) ===")
+    print(f"MAE s_star:  {mae_s:.6f}")
+    print(f"RMSE s_star: {rmse_s:.6f}")
+    print(f"MAE C_star:  {mae_C:.6f} seconds")
+    print(f"RMSE C_star: {rmse_C:.6f} seconds")
+
+    print("\n=== Human Readable Interpretation ===")
+    print(f"s_star MAE: {mae_s_pct_points:.2f} percentage points")
+    print(f"C_star MAE: {mae_C:.2f} seconds")
+    print(f"C_star MAE % of Mean Cycle: {mae_C_pct_mean:.2f}%")
 
     return metrics
 
