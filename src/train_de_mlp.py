@@ -6,7 +6,7 @@ from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error, root_mean_squared_error
 
 from src import config
 
@@ -193,8 +193,8 @@ def evaluate_model(model, test_loader, y_scaler, device):
 
     mae_s = mean_absolute_error(trues_den[:, 0], preds_den[:, 0])
     mae_C = mean_absolute_error(trues_den[:, 1], preds_den[:, 1])
-    rmse_s = mean_squared_error(trues_den[:, 0], preds_den[:, 0], squared=False)
-    rmse_C = mean_squared_error(trues_den[:, 1], preds_den[:, 1], squared=False)
+    rmse_s = root_mean_squared_error(trues_den[:, 0], preds_den[:, 0])
+    rmse_C = root_mean_squared_error(trues_den[:, 1], preds_den[:, 1])
 
     metrics = {
         "mae_s_star": mae_s,
