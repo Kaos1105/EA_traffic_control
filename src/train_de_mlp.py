@@ -15,17 +15,17 @@ DATA_PATH = config.DATASET_PATH
 MODEL_PATH = config.MLP_MODEL_PATH
 
 FEATURE_COLS = [
-    "cycle_idx", "q_NS_ema", "q_EW_ema",
+    "q_NS_ema", "q_EW_ema",
     "ns_delay_prev", "ew_delay_prev",
     "prev_split", "prev_cycle",
 ]
 TARGET_COLS = ["s_star", "C_star"]
 
 BATCH_SIZE = 64
-LR = 1e-3
+LR = 5e-4
 EPOCHS = 200
 PATIENCE = 20
-HIDDEN = [64, 32]
+HIDDEN = [64, 64]
 DROPOUT = 0.1
 SEED = config.SEED
 WEIGHT_S_STAR = 0.5   # weight for s_star (split ratio)
@@ -308,3 +308,68 @@ def train_de_ml():
 
     # 8) save
     save_artifacts(model, x_scaler, y_scaler, metrics, MODEL_PATH)
+
+
+
+def load_mlp_controller(model_path=config.MLP_MODEL_PATH, device=None):
+    """
+    Load trained MLP + scalers from checkpoint.
+    """
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    ckpt = torch.load(model_path, map_location=device)
+
+    feature_cols = ckpt["feature_cols"]
+    target_cols = ckpt["target_cols"]
+
+    in_dim = len(feature_cols)
+    out_dim = len(target_cols)
+
+    model = MLP(
+        in_dim=in_dim,
+        out_dim=out_dim,
+        hidden=HIDDEN,
+        dropout=DROPOUT,
+    ).to(device)
+    model.load_state_dict(ckpt["model_state_dict"])
+    model.eval()
+
+    x_scaler = ckpt["x_scaler"]
+    y_scaler = ckpt["y_scaler"]
+
+    return model, x_scaler, y_scaler, feature_cols, target_cols, device
+
+def mlp_predict_plan(model, x_scaler, y_scaler, temporal_feats,
+                     prev_split, prev_cycle, device):
+    """
+    Build the same feature vector used during training and get (s, C) from MLP.
+    """
+    x_raw = np.array([[
+        temporal_feats["q_NS_ema"],    # "q_NS_ema"
+        temporal_feats["q_EW_ema"],    # "q_EW_ema"
+        temporal_feats["q_NS_prev"],   # "ns_delay_prev" in dataset
+        temporal_feats["q_EW_prev"],   # "ew_delay_prev" in dataset
+        prev_split,                    # "prev_split"
+        prev_cycle,                    # "prev_cycle"
+    ]], dtype=np.float32)
+
+    # normalize with training scaler
+    x_norm = x_scaler.transform(x_raw)
+
+    x_tensor = torch.tensor(x_norm, dtype=torch.float32, device=device)
+    with torch.no_grad():
+        y_norm = model(x_tensor).cpu().numpy()   # shape (1, 2)
+
+    # denormalize to real (s, C)
+    y_den = y_scaler.inverse_transform(y_norm)[0]
+    s_pred = float(y_den[0])
+    C_pred = float(y_den[1])
+
+    # optional: clamp to reasonable ranges
+    s_pred = float(np.clip(s_pred, config.MIN_GREEN_SPLIT, 1-config.MIN_GREEN_SPLIT))   # avoid insane splits
+    C_pred = float(np.clip(C_pred,
+                           config.MIN_CYCLE_LENGTH,    # define in config
+                           config.MAX_CYCLE_LENGTH))
+
+    return s_pred, C_pred

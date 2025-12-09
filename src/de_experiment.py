@@ -6,6 +6,7 @@ from src import road_config
 from src.de_optimizer import differential_evolution
 from src.logging_ml_teacher import append_sample, extract_temporal_features, init_dataset_file
 from src.simulation_libs import reload_sumo_with_state, apply_plan
+from src.train_de_mlp import load_mlp_controller, mlp_predict_plan
 from src.utils import get_green_split, log_cycle_result
 from src.traffic_metrics import cycle_metrics, score_function
 
@@ -242,3 +243,96 @@ def seed_de_teacher_simulation(total_cycles=300):
 
     traci.close()    
     print(f"\n✅ Simulation completed — results saved to {log_file}")
+
+
+def seed_mlp_controller_simulation(total_cycles=300):
+    # 0) Load trained MLP controller
+    model, x_scaler, y_scaler, feature_cols, target_cols, device = load_mlp_controller()
+
+    # 1) Start SUMO
+    sumoCmd = [
+        config.SUMO_BINARY,
+        "-c", config.SUMO_CFG,
+        "--seed", str(config.SEED),
+    ]
+    log_suffix = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = ""
+
+    traci.start(sumoCmd)
+    traci.simulation.loadState(config.SUMO_FIRST_STATE)
+
+    # --- initial state ---
+    prev_split = 0.5
+    prev_cycle = config.CYCLE_LENGTH_DEFAULT
+
+    q_ns_prev, q_ew_prev = 0.0, 0.0
+    q_ns_ema = 0.0
+    q_ew_ema = 0.0
+
+    for cycle in range(total_cycles):
+        time_passed = traci.simulation.getTime()
+        print(f"\nTime passed at cycle {cycle+1}: {time_passed}s.")
+
+        if time_passed >= config.END_TIME:
+            print(f"Elapsed time exceed at: cycle {cycle+1}, stopping early.")
+            break
+
+        print(f"=== MLP Cycle {cycle+1} (t={time_passed:.1f}s) ===")
+
+        # Temporal features at decision time (based on past cycles only)
+        temporal_feats = extract_temporal_features(
+            q_ns_prev,
+            q_ew_prev,
+            q_ns_ema,
+            q_ew_ema,
+            ema_alpha=config.EMA_ALPHA,
+        )
+        q_ns_ema = temporal_feats["q_NS_ema"]
+        q_ew_ema = temporal_feats["q_EW_ema"]
+
+        # Save state if you still want the option to compare with DE later
+        traci.simulation.saveState(config.SUMO_STATE)
+
+        # --- MLP decides best (s, C) for this cycle ---
+        s, C = mlp_predict_plan(
+            model,
+            x_scaler,
+            y_scaler,
+            temporal_feats=temporal_feats,
+            prev_split=prev_split,
+            prev_cycle=prev_cycle,
+            device=device,
+        )
+
+        # Apply to SUMO
+        g_main, g_cross = get_green_split(s, C)
+        apply_plan(road_config.TL_ID, g_main, g_cross)
+
+        # Evaluate under fixed MLP plan
+        O1, O2, ns_delay_curr, ew_delay_curr = cycle_metrics(
+            road_config.NS_LANES,
+            road_config.EW_LANES,
+            int(C),
+            is_return_delay_proxies=True,
+        )
+        score_best = score_function(O1, O2)
+
+        print(
+            f"[MLP] split={s:.3f}, C={C:.1f}, "
+            f"O1={O1:.3f}, O2={O2:.3f}, score={score_best:.3f}"
+        )
+
+        # Optional: log results similar to DE
+        log_file = log_cycle_result(
+            cycle + 1, s, C, O1, O2, score_best, elapsed_s=0.0,
+            suffix=log_suffix, out_dir="logs", prefix="traffic_MLP"
+        )
+
+        # update state for next cycle
+        prev_split = s
+        prev_cycle = C
+        q_ns_prev = ns_delay_curr
+        q_ew_prev = ew_delay_curr
+
+    traci.close()
+    print(f"\n✅ MLP simulation completed — results saved to {log_file}")

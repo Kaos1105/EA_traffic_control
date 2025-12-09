@@ -1,2 +1,6 @@
 /logs/*
 /src/__pycache__/*
+/sumo_cfg/simulation_first_state.xml
+/sumo_cfg/simulation_state.xml
+/sumo_cfg/routes.rou.xml
+/models/*.pt
