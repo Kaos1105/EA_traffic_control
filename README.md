@@ -1,67 +1,291 @@
-# EA Traffic Control — Project Summary
+# IoT Traffic Control
 
-Short overview
-- This project implements an evolutionary (Differential Evolution) traffic‑signal optimizer and an MLP controller pipeline for SUMO simulations. It runs cycle‑level optimization, logs per‑cycle metrics, and trains a neural controller from DE-produced data for fast inference.
+# **EA Traffic Control — Project Overview (For IoT Team)**
 
-Key ideas
-- Use DE to optimize 2 parameters: green split s and cycle length C, measured by two objectives: average delay (O1) and fairness (O2). The optimizer uses a score function (weighted sum) to rank candidates; e.g. $score = w_1 O_1 + w_2 O_2$ (weights configured in the code — see [`controller.score_function`](controller.ipynb)).
-- Collect per‑cycle inputs/outputs to produce a teacher dataset for an MLP, then train a model for fast, on‑line control instead of running an optimizer each cycle.
+---
 
-Repository layout (important files)
-- [controller.ipynb](controller.ipynb) — interactive driver and visualization (DE run examples, plotting utilities, score function). See [`controller.score_function`](controller.ipynb).
-- [mlp_controller.ipynb](mlp_controller.ipynb) — runs the MLP controller experiments and visualizations.
-- [mlp_training.ipynb](mlp_training.ipynb) — notebook to run training (calls training entrypoint).
-- src/
-  - [src/config.py](src/config.py) — SUMO paths, seeds, logging dirs (e.g. [`src.config.SUMO_CFG`](src/config.py), [`src.config.LOG_DIR`](src/config.py)).
-  - [src/de_experiment.py](src/de_experiment.py) — DE experiment entrypoints:
-    - [`src.de_experiment.seed_de_simulation`](src/de_experiment.py)
-    - [`src.de_experiment.seed_de_teacher_simulation`](src/de_experiment.py)
-    - [`src.de_experiment.seed_mlp_controller_simulation`](src/de_experiment.py)
-    - [`src.de_experiment.baseline_simulation`](src/de_experiment.py)
-  - [src/de_optimizer.py](src/de_optimizer.py) — DE mechanics and helpers.
-  - [src/simulation_libs.py](src/simulation_libs.py) — SUMO wrappers, e.g. [`src.simulation_libs.find_avg_halt_range`](src/simulation_libs.py).
-  - [src/traffic_metrics.py](src/traffic_metrics.py) — metrics and cycle evaluation helpers.
-  - [src/road_config.py](src/road_config.py) — intersection metadata (e.g. [`src.road_config.TL_ID`](src/road_config.py), lane groups).
-  - [src/utils.py](src/utils.py) — logging/visualization utilities:
-    - [`src.utils.log_cycle_result`](src/utils.py)
-    - [`src.utils.visualize_pow_results`](src/utils.py)
-    - [`src.utils.compare_logs_by_time`](src/utils.py)
-    - [`src.utils.compare_score_best`](src/utils.py)
-  - [src/train_de_mlp.py](src/train_de_mlp.py) — training entrypoint: [`src.train_de_mlp.train_de_ml`](src/train_de_mlp.py).
-  - [src/logging_ml_teacher.py](src/logging_ml_teacher.py) — dataset writer for MLP teacher data.
-- datasets/
-  - [datasets/de_teacher_data.csv](datasets/de_teacher_data.csv) — example teacher data created by DE teacher runs.
-- logs/ — per‑run CSV summary files (e.g. traffic_DE_summary_*.csv, traffic_baseline_summary_*.csv).
-- models/ — trained MLP models saved here.
+## 🎯 **Conceptual Overview**
 
-Quick start (run locally)
-1. Configure SUMO and scenario paths in [`src/config.py`](src/config.py) and intersection lanes in [`src/road_config.py`](src/road_config.py).
-2. Run a DE experiment (notebook or function):
-   - Open [controller.ipynb](controller.ipynb) and run the DE cells, or call [`src.de_experiment.seed_de_simulation`](src/de_experiment.py).
-3. Produce teacher data (DE + logging):
-   - Call [`src.de_experiment.seed_de_teacher_simulation`](src/de_experiment.py) to generate teacher CSV(s) in `datasets/`.
-4. Train MLP:
-   - Use [mlp_training.ipynb](mlp_training.ipynb) or call [`src.train_de_mlp.train_de_ml`](src/train_de_mlp.py).
-5. Evaluate / run MLP controller:
-   - Use [mlp_controller.ipynb](mlp_controller.ipynb) or [`src.de_experiment.seed_mlp_controller_simulation`](src/de_experiment.py) to test the learned policy in SUMO.
-6. Visualize and compare:
-   - Use functions in [`src.utils`](src/utils.py): [`src.utils.visualize_pow_results`](src/utils.py), [`src.utils.compare_logs_by_time`](src/utils.py), and [`src.utils.compare_score_best`](src/utils.py) to inspect convergence, per‑cycle metrics, and baseline vs DE/MLP comparisons.
+This project develops an **AI-driven adaptive traffic light controller** that updates timing **every cycle** using real-time data.
 
-Notes & tips
-- The score used for DE is a linear combination of O1 and O2 (weights visible in the notebooks). See [`controller.score_function`](controller.ipynb) for exact implementation.
-- SUMO state snapshots are used to ensure identical evaluation starts; check [`src.config.SUMO_STATE`](src/config.py) and the snapshot helpers in [`src.simulation_libs.find_avg_halt_range`](src/simulation_libs.py).
-- Logs and summary CSVs are stored in `logs/` and aggregated by [`src.utils.log_cycle_result`](src/utils.py). Use those to reproduce plots shown in the notebooks.
-- If you want to change the optimization bounds or DE hyperparameters, edit [`src/de_optimizer.py`](src/de_optimizer.py) or the call sites in [`src.de_experiment`](src/de_experiment.py).
+The system works in **two stages**:
 
-References (openable files/functions)
-- Files: [controller.ipynb](controller.ipynb), [mlp_controller.ipynb](mlp_controller.ipynb), [mlp_training.ipynb](mlp_training.ipynb)
-- Config & metadata: [`src.config`](src/config.py), [`src.road_config`](src/road_config.py)
-- DE & experiments: [`src.de_experiment`](src/de_experiment.py), [`src.de_optimizer`](src/de_optimizer.py)
-- SUMO helpers: [`src.simulation_libs.find_avg_halt_range`](src/simulation_libs.py)
-- Metrics & logging: [`src.traffic_metrics`](src/traffic_metrics.py), [`src.utils.visualize_pow_results`](src/utils.py)
-- Training: [`src.train_de_mlp.train_de_ml`](src/train_de_mlp.py), [`src.logging_ml_teacher`](src/logging_ml_teacher.py)
-- Data & outputs: [datasets/de_teacher_data.csv](datasets/de_teacher_data.csv), [logs/](logs/), [models/](models/)
+### **1️⃣ Differential Evolution (DE) — The “Teacher”**
 
-License & next steps
-- Add a LICENSE if you plan to publish.
-- Next: tune DE hyperparameters, enrich teacher data, try alternative network architectures and validate generalization on different traffic mixes.
+DE is a **population-based optimization algorithm** that works like a team of problem solvers exploring different solutions.
+
+Think of it like this:
+
+- DE starts with many random timing plans (different values of split `s` and cycle length `C`).
+- Each plan is tested in a simulation.
+- The best-performing plans are combined and mutated to create even better plans.
+- After many iterations, DE finds a **high-quality traffic-signal timing plan** for the given traffic condition.
+
+Conceptually:
+
+```
+Try many timing plans → keep the best → mix/mutate → repeat → get optimal plan
+```
+
+DE is **accurate** but **slow**, taking 10–30 seconds per cycle.
+
+### **2️⃣ MLP Neural Network — The “Student”**
+
+To achieve real-time control:
+
+- An **MLP model is trained to learn from DE’s optimal decisions**
+- The MLP predicts `(s, C)` in **milliseconds**, perfect for IoT devices
+
+So the pipeline is:
+
+```
+DE finds optimal solutions → MLP learns them → MLP runs in real-time
+```
+
+This is the core innovation of the project:
+
+**Use DE offline to generate intelligence → compress it into an MLP for fast online control.**
+
+---
+
+# **🛑 Key Traffic-Signal Parameters**
+
+Each signal cycle is defined by two variables:
+
+- **Green split (s)** — how long NS vs EW gets green
+- **Cycle length (C)** — duration of one full cycle
+
+The controller outputs:
+
+```
+(s, C) for the next cycle
+```
+
+---
+
+# **📊 Optimization Objectives (DE)**
+
+DE evaluates each timing plan using:
+
+- **O₁ — Reduce average delay**
+- **O₂ — Fairness between directions**
+
+Final score:
+
+```
+score = w1 * O1 + w2 * O2
+```
+
+DE improves timing plans until finding the near-best timing.
+
+---
+
+# **🧠 Why We Need the MLP**
+
+- DE = **accurate but slow**
+- MLP = **slightly less accurate but extremely fast**
+
+In real IoT systems, we need decisions **within milliseconds**, not seconds.
+
+Therefore:
+
+- **DE = offline computation**
+- **MLP = online real-time controller**
+
+---
+
+# **🚦 End-to-End System Pipeline (IoT Perspective)**
+
+```
+Sensors (loops / cameras)
+        │
+        ▼
+Extract traffic features (queues, delay, EMA)
+        │
+        ▼
+MLP Controller (edge device)
+→ Predict (s, C) for next cycle
+        │
+        ▼
+Traffic Light Controller applies the plan
+        │
+        ▼
+(Optional) log data for retraining
+```
+
+---
+
+# **🧪 Repository Pipeline (How the Code Works)**
+
+---
+
+## **1. Scenario Setup**
+
+- SUMO network
+- Initial state configuration via `src/config.py`
+
+---
+
+## **2. Generate DE Data**
+
+Use DE to produce labeled samples:
+
+```
+features → DE-optimal (s, C)
+```
+
+Generated by:
+
+- `src.de_experiment.seed_de_teacher_simulation`
+
+Stored in:
+
+- `datasets/`
+- `logs/`
+
+---
+
+## **3. Build Teacher Dataset**
+
+Collected into CSVs containing:
+
+- traffic features
+- optimal split & cycle length
+
+Used for training the MLP.
+
+---
+
+## **4. Train the MLP**
+
+Using either:
+
+- `src/train_de_mlp.train_de_ml`
+- `mlp_training.ipynb`
+
+Outputs:
+
+- trained model (`.pth`)
+- normalization scalers
+- plots and logs
+
+---
+
+## **5. Deploy MLP on Edge Device**
+
+Export model to:
+
+- **TorchScript**
+- **ONNX Runtime**
+
+Edge flow:
+
+```
+sensor features → scaler → MLP → enforce bounds → send to controller
+```
+
+---
+
+# **📁 Important Repository Components**
+
+---
+
+## **Notebooks**
+
+- `controller.ipynb` — DE-based control
+- `mlp_training.ipynb` — train the MLP
+- `mlp_controller.ipynb` — test MLP predictions
+
+---
+
+## **Core Python Files**
+
+- `src/de_experiment.py`
+- `src/train_de_mlp.py`
+- `src/config.py`
+
+---
+
+## **Data & Models**
+
+- `datasets/` — DE teacher data
+- `models/` — trained MLP model
+- `logs/` — simulation results
+
+---
+
+# **🧩 Why This Is an IoT Project**
+
+The teammates only need these concepts:
+
+### **IoT Flow**
+
+```
+Sensors → Edge inference → Actuator → Cloud
+```
+
+### **Real-Time Requirement**
+
+- MLP must respond **under 100 ms**
+- DE is too slow for deployment
+
+### **Edge-ready Design**
+
+- Model exported to ONNX/TorchScript
+- Runs on Pi, Jetson, Coral TPU, etc.
+
+---
+
+# **🛟 Safety & Fallback Strategy**
+
+System enforces:
+
+- valid split range
+- valid cycle length range
+
+If the model misbehaves:
+
+- Use baseline fixed timing
+- trigger safety fallback
+
+---
+
+# **🗂 Role Breakdown**
+
+---
+
+## **Documentation Team**
+
+- Explain the DE conceptually
+- Explain why MLP speeds things up
+- Draw pipeline diagrams
+
+---
+
+## **Presentation Team**
+
+- Show before/after traffic improvements
+- Show system architecture
+- Show MLP latency comparison vs DE
+
+---
+
+## **Demo Team**
+
+- Run SUMO notebook
+- Show MLP ONNX inference
+- Display logs/graphs
+
+---
+
+# **✔️ Summary**
+
+This system integrates:
+
+- **Optimization (DE)**
+- **Machine learning (MLP)**
+- **Edge computing (IoT)**
+
+Final result: a **fast, adaptive, smart traffic-light controller** that updates every cycle based on live traffic.
+
+[IoT Traffic Control Tổng quan](https://www.notion.so/IoT-Traffic-Control-T-ng-quan-2c50d751aef1801a8fd9d36da2732577?pvs=21)
