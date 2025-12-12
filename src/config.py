@@ -10,6 +10,7 @@ LOG_DIR= "logs"
 DATASET_PATH = "datasets/de_teacher_data.csv"
 EMA_ALPHA = 0.3 
 MLP_MODEL_PATH = "models/mlp_de_teacher_model.pth"
+MLP_ONNX_MODEL_PATH = "models/mlp_controller.onnx"
 
 # Global timing constants
 REDUCE_AVG_WAIT_TIME_W, FAIRNESS_W = 0.7, 0.3 # prioritize reduce wait time
